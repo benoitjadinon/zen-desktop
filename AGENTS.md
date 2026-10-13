@@ -93,6 +93,17 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
   `custom/rules.lua`, for example `hl.window_rule({ match = { class = "..." }, ... })`.
   The little-arc window has class `zen-little-arc`. Back the config up first.
 
+## Staying current with upstream
+
+- `apps-autoupdate` (daily timer) fetches `zen-browser/desktop`, fast-forwards
+  `dev` and merges it into `feat/...` branches, aborting on conflicts. Our
+  `.patch` files conflict easily; resolve by hand, then `npx surfer export`.
+- A change to `surfer.json` means Firefox moved: `npm run sync`, `npm run import`,
+  and a full engine rebuild; `./mach build faster` is not enough.
+- `~/Tools/scripts/zen-install` copies the build to `~/.local/lib/zen-custom`
+  and rewrites the `zen-custom` launcher; `zen-release` makes a release build.
+  Both replace the wrapper described above, so don't run them casually.
+
 ## Git
 
 - Work on `feat/...` branches, push to `origin` (the fork). Open a PR only
