@@ -1,5 +1,5 @@
 diff --git a/browser/components/sessionstore/SessionStore.sys.mjs b/browser/components/sessionstore/SessionStore.sys.mjs
-index 7dfe2a31ca7545d1966e4fe6f3b6f1ae0aa5c8be..686ec9b0f6e657866282ebe76576ffe03502c4ad 100644
+index 7dfe2a31ca7545d1966e4fe6f3b6f1ae0aa5c8be..a900e3b368636fa763a9cc635b43bb8e5b69bc14 100644
 --- a/browser/components/sessionstore/SessionStore.sys.mjs
 +++ b/browser/components/sessionstore/SessionStore.sys.mjs
 @@ -204,6 +204,11 @@ const TAB_EVENTS = [
@@ -95,7 +95,7 @@ index 7dfe2a31ca7545d1966e4fe6f3b6f1ae0aa5c8be..686ec9b0f6e657866282ebe76576ffe0
          lazy.SessionSaver.updateLastSaveTime();
  
 -        if (isPrivateWindow || isTaskbarTab) {
-+        if (isPrivateWindow || isTaskbarTab || aWindow.document.documentElement.hasAttribute("zen-unsynced-window")) {
++        if (isPrivateWindow || isTaskbarTab || aWindow.document.documentElement.hasAttribute("zen-unsynced-window") || aWindow.document.documentElement.hasAttribute("zen-little-arc")) {
            this.#log.debug(
              "initializeWindow, the window is private or a web app. Saving SessionStartup.state for possibly restoring later"
            );

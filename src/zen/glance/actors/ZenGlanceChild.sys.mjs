@@ -24,6 +24,20 @@ XPCOMUtils.defineLazyPreferenceGetter(
   "ctrl"
 );
 
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "littleArcEnabled",
+  "zen.little-arc.enabled",
+  true
+);
+
+XPCOMUtils.defineLazyPreferenceGetter(
+  lazy,
+  "littleArcActivationMethod",
+  "zen.little-arc.activation-method",
+  "alt+shift"
+);
+
 // A small threshold to allow for minor mouse jitter during a normal click.
 // Anything beyond this is likely an intentional drag (like selecting text).
 const CLICK_DRAG_THRESHOLD_PX = 4;
@@ -45,6 +59,30 @@ export class ZenGlanceChild extends JSWindowActorChild {
 
   #ensureOnlyKeyModifiers(event) {
     return !(event.ctrlKey ^ event.altKey ^ event.shiftKey ^ event.metaKey);
+  }
+
+  #matchesLittleArcActivation(event) {
+    if (!lazy.littleArcEnabled) {
+      return false;
+    }
+    const wanted = new Set(
+      lazy.littleArcActivationMethod
+        .toLowerCase()
+        .split("+")
+        .map(modifier => modifier.trim())
+        .filter(Boolean)
+    );
+    const pressed = [
+      event.ctrlKey && "ctrl",
+      event.altKey && "alt",
+      event.shiftKey && "shift",
+      event.metaKey && "meta",
+    ].filter(Boolean);
+    return (
+      !!wanted.size &&
+      wanted.size === pressed.length &&
+      pressed.every(modifier => wanted.has(modifier))
+    );
   }
 
   #openGlance(href, principal) {
@@ -148,12 +186,22 @@ export class ZenGlanceChild extends JSWindowActorChild {
     }
 
     const { node, href, principal } = this.#getTargetFromEvent(event);
-    if (
-      event.button !== 0 ||
-      !node ||
-      event.defaultPrevented ||
-      this.#ensureOnlyKeyModifiers(event)
-    ) {
+    if (event.button !== 0 || !node || event.defaultPrevented) {
+      return;
+    }
+    if (this.#matchesLittleArcActivation(event)) {
+      if (this.#checkSecurity(href, principal)) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      this.sendAsyncMessage("ZenGlance:OpenLittleArc", {
+        url: href,
+        triggeringPrincipal: principal,
+      });
+      return;
+    }
+    if (this.#ensureOnlyKeyModifiers(event)) {
       return;
     }
     const activationMethod = lazy.activationMethod;

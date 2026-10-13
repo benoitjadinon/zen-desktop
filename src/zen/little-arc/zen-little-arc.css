@@ -1,0 +1,67 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+#zen-little-arc-bar {
+  display: none;
+}
+
+:root[zen-little-arc] {
+  & #zen-main-app-wrapper {
+    flex-direction: column;
+  }
+
+  & #browser {
+    flex: 1;
+    min-height: 0;
+  }
+
+  & #zen-little-arc-bar {
+    display: flex;
+    flex: none;
+    gap: 8px;
+    height: 36px;
+    padding: 0 10px;
+    -moz-window-dragging: drag;
+    color: var(--toolbar-color, inherit);
+  }
+
+  & #zen-little-arc-title {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.7;
+    user-select: none;
+  }
+
+  & .zen-little-arc-button {
+    -moz-window-dragging: no-drag;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    margin: 0;
+    border-radius: 999px;
+    color: inherit;
+    -moz-context-properties: fill;
+    fill: currentColor;
+
+    &:hover {
+      background: color-mix(in srgb, currentColor 14%, transparent);
+    }
+
+    &:hover:active {
+      background: color-mix(in srgb, currentColor 22%, transparent);
+    }
+  }
+
+  & #zen-little-arc-close {
+    list-style-image: url("chrome://global/skin/icons/close.svg");
+  }
+
+  & #zen-little-arc-maximize {
+    list-style-image: url("chrome://global/skin/icons/open-in-new.svg");
+  }
+}

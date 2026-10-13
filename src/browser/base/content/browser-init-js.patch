@@ -1,8 +1,19 @@
 diff --git a/browser/base/content/browser-init.js b/browser/base/content/browser-init.js
-index 2f3f46d8d82dc90ebca8d64ace9d6bf1ee127937..163eb027b8cca1d43af24fff762e951e6f1030fc 100644
+index 2ba2ba2f13d6463bbf79185fc9306e0d035f189c..b286bfb09e61e89d60d4b5f7c58f14ae87f08dae 100644
 --- a/browser/base/content/browser-init.js
 +++ b/browser/base/content/browser-init.js
-@@ -279,6 +279,7 @@ var gBrowserInit = {
+@@ -187,6 +187,10 @@ var gBrowserInit = {
+       if (extraOptions.hasKey("aswebauth")) {
+         document.documentElement.setAttribute("aswebauth", true);
+       }
++      if (extraOptions.hasKey("zen-little-arc")) {
++        document.documentElement.setAttribute("zen-little-arc", true);
++        document.documentElement.setAttribute("windowclass", "zen-little-arc");
++      }
+     }
+ 
+     let tabToAdopt = this.getTabToAdopt();
+@@ -290,6 +294,7 @@ var gBrowserInit = {
    },
  
    onLoad() {
