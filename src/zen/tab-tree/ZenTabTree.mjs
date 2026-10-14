@@ -68,6 +68,114 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
     window.addEventListener("TabUngrouped", this);
     window.addEventListener("SSWindowStateReady", this);
     window.addEventListener("SSTabRestored", this);
+    this.#initCloseTree();
+  }
+
+  // The tabs of `nodes`; a split group stands for all its tabs.
+  #tabsOf(nodes) {
+    return nodes.flatMap(n => (this.#isSplitGroup(n) ? [...n.tabs] : [n]));
+  }
+
+  /**
+   * Closes a node's whole subtree.
+   *
+   * @param {Element} node
+   * @param {object} [options]
+   * @param {boolean} [options.includeSelf] - Close the node too, not only its
+   *   descendants
+   */
+  closeTree(node, { includeSelf = true } = {}) {
+    const nodes = [...(includeSelf ? [node] : []), ...this.getDescendants(node)];
+    const tabs = this.#tabsOf(nodes).filter(t => t.isConnected && !t.closing);
+    if (tabs.length) {
+      gBrowser.removeTabs(tabs, { animate: true });
+    }
+  }
+
+  // Whether Shift/Alt is held: with it, a parent's close button closes its tree.
+  #setKillModifier(event) {
+    const held = !!(event.shiftKey || event.altKey);
+    gBrowser.tabContainer.toggleAttribute("zen-tree-kill-modifier", held);
+  }
+
+  #initCloseTree() {
+    const tabs = gBrowser.tabContainer;
+    // Pointer events carry the modifiers even while page content has focus,
+    // where the window sees no key events.
+    tabs.addEventListener("mousemove", e => this.#setKillModifier(e), {
+      passive: true,
+    });
+    tabs.addEventListener("mouseleave", () =>
+      tabs.removeAttribute("zen-tree-kill-modifier")
+    );
+    window.addEventListener("keydown", e => this.#setKillModifier(e), true);
+    window.addEventListener("keyup", e => this.#setKillModifier(e), true);
+    window.addEventListener("blur", () =>
+      tabs.removeAttribute("zen-tree-kill-modifier")
+    );
+    // Capture, so this runs before the tab's own close-button handler.
+    tabs.addEventListener("click", e => this.#onCloseButtonClick(e), true);
+
+    const closeItem = document.getElementById("context_closeTab");
+    const menu = document.getElementById("tabContextMenu");
+    if (!closeItem || !menu) {
+      return;
+    }
+    const makeItem = (id, l10nId, onCommand) => {
+      const item = document.createXULElement("menuitem");
+      item.id = id;
+      document.l10n.setAttributes(item, l10nId);
+      item.addEventListener("command", onCommand);
+      return item;
+    };
+    const closeAll = makeItem(
+      "context_zenTreeCloseAll",
+      "zen-tab-tree-close-all",
+      () => this.closeTree(this.#nodeOf(TabContextMenu.contextTab))
+    );
+    const closeBranches = makeItem(
+      "context_zenTreeCloseBranches",
+      "zen-tab-tree-close-branches",
+      () =>
+        this.closeTree(this.#nodeOf(TabContextMenu.contextTab), {
+          includeSelf: false,
+        })
+    );
+    closeItem.after(closeAll, closeBranches);
+    menu.addEventListener("popupshowing", e => {
+      if (e.target !== menu) {
+        return;
+      }
+      const tab = TabContextMenu.contextTab;
+      const node = tab && this.#nodeOf(tab);
+      const show =
+        !!node &&
+        !tab.multiselected &&
+        this.isTreeEligible(node) &&
+        this.getChildren(node).length > 0;
+      closeAll.hidden = closeBranches.hidden = !show;
+    });
+  }
+
+  #onCloseButtonClick(event) {
+    if (
+      event.button !== 0 ||
+      !(event.shiftKey || event.altKey) ||
+      !event.target.classList?.contains("tab-close-button")
+    ) {
+      return;
+    }
+    const tab = event.target.closest(".tabbrowser-tab");
+    if (!tab || tab.multiselected) {
+      return;
+    }
+    const node = this.#nodeOf(tab);
+    if (!this.isTreeEligible(node) || !this.getChildren(node).length) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeTree(node);
   }
 
   handleEvent(aEvent) {

@@ -41,3 +41,7 @@ copy node_modules
 # paths; repoint them at this worktree.
 npx surfer import
 npm run ffprefs
+
+# Zen's locale files are copied into engine/, not linked, and `surfer reset`
+# wipes them.
+cp -r locales/en-US/browser/browser/. engine/browser/locales/en-US/browser/

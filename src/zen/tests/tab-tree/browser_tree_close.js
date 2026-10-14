@@ -96,3 +96,36 @@ add_task(async function test_close_subtree_closes_grandchildren() {
   await cleanupTabs(a, b, c);
   await SpecialPowers.popPrefEnv();
 });
+
+add_task(async function test_close_tree_and_branches() {
+  const root = await addNormalTab();
+  const parent = await addNormalTab();
+  const child = await addNormalTab();
+  const grandchild = await gBrowser.addTab("about:blank", {
+    triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
+  });
+  gZenTabTree.nestTab(parent, root);
+  gZenTabTree.nestTab(child, parent);
+  gZenTabTree.nestTab(grandchild, child);
+
+  gZenTabTree.closeTree(parent, { includeSelf: false });
+  await TestUtils.waitForCondition(
+    () =>
+      (child.closing || !child.isConnected) &&
+      (grandchild.closing || !grandchild.isConnected)
+  );
+  ok(!parent.closing && parent.isConnected, "closing branches keeps the tab");
+  ok(!gZenTabTree.getChildren(parent).length, "and leaves it childless");
+
+  const kid = await addNormalTab();
+  gZenTabTree.nestTab(kid, parent);
+  gZenTabTree.closeTree(parent);
+  await TestUtils.waitForCondition(
+    () =>
+      (parent.closing || !parent.isConnected) &&
+      (kid.closing || !kid.isConnected)
+  );
+  ok(root.isConnected && !root.closing, "the tree's ancestors are untouched");
+
+  await cleanupTabs(root);
+});

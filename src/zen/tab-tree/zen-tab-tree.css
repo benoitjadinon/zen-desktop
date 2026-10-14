@@ -126,3 +126,10 @@ tab-group[split-view-group][zen-tree-nest-target] {
   box-shadow: none !important;
   outline: none !important;
 }
+
+/* Shift or Alt held over a parent's close button closes its whole tree: show
+   several X's instead of one so that is clear before the click. */
+#tabbrowser-tabs[zen-tree-kill-modifier] .tabbrowser-tab[zen-tree-parent] .tab-close-button {
+  -moz-context-properties: fill, fill-opacity;
+  list-style-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='context-fill' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M2.5 2.5l5 5m0-5l-5 5'/%3E%3Cpath d='M8.5 8.5l5 5m0-5l-5 5'/%3E%3Cpath d='M8.5 2.5l5 5m0-5l-5 5' opacity='.6'/%3E%3Cpath d='M2.5 8.5l5 5m0-5l-5 5' opacity='.6'/%3E%3C/svg%3E") !important;
+}
