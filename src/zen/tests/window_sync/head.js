@@ -27,10 +27,14 @@ async function withNewSyncedWindow(action) {
   }
 }
 
-async function runSyncAction(action, callback, type) {
+// `matches` narrows which event of `type` we settle on. Matching on the type
+// alone is not enough: sync events are queued rather than dropped when another
+// window is mid-sync, so one left over from earlier work can arrive here first
+// and resolve the wait before the action's own event has been handled.
+async function runSyncAction(action, callback, type, matches = null) {
   await new Promise((resolve, reject) => {
     window.gZenWindowSync.addSyncHandler(async function handler(aEvent) {
-      if (aEvent.type === type) {
+      if (aEvent.type === type && (!matches || matches(aEvent))) {
         window.gZenWindowSync.removeSyncHandler(handler);
         try {
           await callback(aEvent);
@@ -65,7 +69,8 @@ async function withNewTabAndWindow(action) {
         );
         await action(newTab, win);
       },
-      "TabOpen"
+      "TabOpen",
+      aEvent => aEvent.target === newTab
     );
   });
   let portalTabClosing = BrowserTestUtils.waitForTabClosing(newTab);

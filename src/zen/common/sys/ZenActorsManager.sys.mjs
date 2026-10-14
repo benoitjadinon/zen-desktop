@@ -58,6 +58,35 @@ let JSWINDOWACTORS = {
     safeForUntrustedWebProcess: true,
     enablePreference: "zen.glance.enabled",
   },
+  ZenTabTreeLink: {
+    parent: {
+      esModuleURI: "resource:///actors/ZenTabTreeLinkParent.sys.mjs",
+    },
+    child: {
+      esModuleURI: "resource:///actors/ZenTabTreeLinkChild.sys.mjs",
+      events: {
+        // mousedown runs before the page can open anything, so the modifiers
+        // are recorded before the new tab appears; click/auxclick cover
+        // keyboard activation.
+        mousedown: {
+          capture: true,
+          mozSystemGroup: true,
+        },
+        click: {
+          capture: true,
+          mozSystemGroup: true,
+        },
+        auxclick: {
+          capture: true,
+          mozSystemGroup: true,
+        },
+      },
+    },
+    allFrames: true,
+    remoteTypes: ["web", "file"],
+    safeForUntrustedWebProcess: true,
+    enablePreference: "zen.tab-tree.enabled",
+  },
   ZenWindowDrag: {
     parent: {
       esModuleURI: "resource:///actors/ZenWindowDragParent.sys.mjs",
