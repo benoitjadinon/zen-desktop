@@ -1,0 +1,4 @@
+# Runs in each new Orca worktree: reflink-copies engine/ (the surfer download)
+# from the main checkout instead of downloading it again.
+scripts:
+  setup: bash scripts/orca-setup.sh
