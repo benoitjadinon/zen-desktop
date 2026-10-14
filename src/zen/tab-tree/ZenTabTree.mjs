@@ -288,9 +288,26 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
 
   // Representative tab of the last eligible non-dragged node, so a drag below the
   // list can target its bottom edge to reorder/outdent there.
+  // Whether a node can anchor a drop indicator: eligible, and actually on
+  // screen. Closing tabs linger in the DOM through their close animation, tabs
+  // in a collapsed branch are display:none, and other spaces' tabs share the
+  // tab list; none of those may be treated as the gap's neighbour.
+  isDropAnchor(node) {
+    if (
+      !this.isTreeEligible(node) ||
+      this.#isClosing(node) ||
+      node.hidden ||
+      node.hasAttribute("zen-tree-hidden")
+    ) {
+      return false;
+    }
+    const workspaceId = this.#workspaceIdOf(node);
+    return !workspaceId || workspaceId === gZenWorkspaces.activeWorkspace;
+  }
+
   lastDropTab(exclude) {
     const nodes = this.#nodes().filter(
-      n => this.isTreeEligible(n) && !exclude?.has(n)
+      n => this.isDropAnchor(n) && !exclude?.has(n)
     );
     const last = nodes[nodes.length - 1];
     return last ? this.#representativeTab(last) : null;
@@ -528,13 +545,13 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
       roots.flatMap(r => [r, ...this.getDescendants(r)])
     );
     let prev = roots[0].previousElementSibling;
-    while (prev && (!this.isTreeEligible(prev) || draggedNodes.has(prev))) {
+    while (prev && (!this.isDropAnchor(prev) || draggedNodes.has(prev))) {
       prev = prev.previousElementSibling;
     }
     let next = this.#lastSubtreeNode(
       roots[roots.length - 1]
     ).nextElementSibling;
-    while (next && (!this.isTreeEligible(next) || draggedNodes.has(next))) {
+    while (next && (!this.isDropAnchor(next) || draggedNodes.has(next))) {
       next = next.nextElementSibling;
     }
     const { minLevel, maxLevel, prevLevel } = this.reorderLevelRange(

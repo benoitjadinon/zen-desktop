@@ -31,3 +31,23 @@ add_task(async function test_drop_quick_nests_multiselection() {
 
   await cleanupTabs(parent, a, b);
 });
+
+// Closing tabs linger in the DOM and collapsed descendants are display:none;
+// neither may be the neighbour a drop indicator anchors to.
+add_task(async function test_drop_anchor_ignores_ghost_tabs() {
+  const parent = await addNormalTab();
+  const child = await addNormalTab();
+  gZenTabTree.nestTab(child, parent);
+  ok(gZenTabTree.isDropAnchor(child), "a visible child can anchor a drop");
+
+  gZenTabTree.setCollapsed(parent, true);
+  ok(!gZenTabTree.isDropAnchor(child), "a collapsed descendant cannot");
+  ok(gZenTabTree.isDropAnchor(parent), "its visible parent still can");
+  gZenTabTree.setCollapsed(parent, false);
+
+  child._closedInMultiselection = true;
+  ok(!gZenTabTree.isDropAnchor(child), "a tab on its way out cannot");
+  delete child._closedInMultiselection;
+
+  await cleanupTabs(parent, child);
+});

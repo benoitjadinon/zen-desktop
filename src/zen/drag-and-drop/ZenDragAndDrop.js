@@ -1209,13 +1209,13 @@
     #updateReorderIndicator(node, before, clientX, draggedNodes, forceLevel) {
       const tree = window.gZenTabTree;
       let prev = before ? node.previousElementSibling : node;
-      while (prev && (!tree.isTreeEligible(prev) || draggedNodes.has(prev))) {
+      while (prev && (!tree.isDropAnchor(prev) || draggedNodes.has(prev))) {
         prev = prev.previousElementSibling;
       }
       // The eligible node just below the gap bounds how shallow the drop can go:
       // dropping shallower than it would orphan it from its branch.
       let next = before ? node : node.nextElementSibling;
-      while (next && (!tree.isTreeEligible(next) || draggedNodes.has(next))) {
+      while (next && (!tree.isDropAnchor(next) || draggedNodes.has(next))) {
         next = next.nextElementSibling;
       }
       const indentStep = this._treeIndentStep;
