@@ -68,7 +68,10 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
     window.addEventListener("TabUngrouped", this);
     window.addEventListener("SSWindowStateReady", this);
     window.addEventListener("SSTabRestored", this);
-    this.#initCloseTree();
+    // gBrowser and the tab context menu don't exist yet this early.
+    (window.delayedStartupPromise ?? Promise.resolve()).then(() =>
+      this.#initCloseTree()
+    );
   }
 
   // The tabs of `nodes`; a split group stands for all its tabs.
