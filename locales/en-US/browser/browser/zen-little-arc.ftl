@@ -6,3 +6,6 @@ zen-little-arc-close =
     .tooltiptext = Close
 zen-little-arc-maximize =
     .tooltiptext = Open in a tab
+
+zen-little-arc-copy =
+    .tooltiptext = Copy link

@@ -35,6 +35,7 @@ export class ZenLittleArcWindow extends ZenUIComponent {
   #leaving = false;
   #blurTimer = null;
   #title = null;
+  #copyTimer = null;
 
   init() {
     if (!lazy.ZenLittleArc.isLittleWindow(this.window)) {
@@ -53,6 +54,7 @@ export class ZenLittleArcWindow extends ZenUIComponent {
 
   uninit() {
     this.window.clearTimeout(this.#blurTimer);
+    this.window.clearTimeout(this.#copyTimer);
   }
 
   #buildChrome() {
@@ -62,6 +64,9 @@ export class ZenLittleArcWindow extends ZenUIComponent {
                        class="zen-little-arc-button"
                        data-l10n-id="zen-little-arc-close"/>
         <label id="zen-little-arc-title" flex="1" crop="end"/>
+        <toolbarbutton id="zen-little-arc-copy"
+                       class="zen-little-arc-button"
+                       data-l10n-id="zen-little-arc-copy"/>
         <toolbarbutton id="zen-little-arc-maximize"
                        class="zen-little-arc-button"
                        data-l10n-id="zen-little-arc-maximize"/>
@@ -73,20 +78,35 @@ export class ZenLittleArcWindow extends ZenUIComponent {
     bar
       .querySelector("#zen-little-arc-maximize")
       .addEventListener("command", () => this.maximize());
+    bar
+      .querySelector("#zen-little-arc-copy")
+      .addEventListener("command", () => this.copyLink());
     this.#title = bar.querySelector("#zen-little-arc-title");
     this.document.getElementById("zen-main-app-wrapper").prepend(bar);
   }
 
   #updateTitle() {
-    const browser = this.window.gBrowser.selectedBrowser;
-    let host = "";
-    try {
-      host = browser.currentURI.host.replace(/^www\./, "");
-    } catch (e) {
-      host = browser.currentURI?.spec ?? "";
+    const spec = this.window.gBrowser.selectedBrowser.currentURI?.spec ?? "";
+    // The scheme only adds noise; the full address stays in the tooltip.
+    this.#title.value = spec.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    this.#title.tooltipText = spec;
+  }
+
+  copyLink() {
+    const spec = this.window.gBrowser.selectedBrowser.currentURI?.spec;
+    if (!spec) {
+      return;
     }
-    this.#title.value = host;
-    this.#title.tooltipText = browser.currentURI?.spec ?? "";
+    Cc["@mozilla.org/widget/clipboardhelper;1"]
+      .getService(Ci.nsIClipboardHelper)
+      .copyString(spec);
+    const button = this.document.getElementById("zen-little-arc-copy");
+    button.setAttribute("copied", "true");
+    this.window.clearTimeout(this.#copyTimer);
+    this.#copyTimer = this.window.setTimeout(
+      () => button.removeAttribute("copied"),
+      1200,
+    );
   }
 
   close() {

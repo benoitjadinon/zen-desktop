@@ -13,6 +13,14 @@
     flex-direction: column;
   }
 
+  /* The page is all that is left: no sidebar, address bar or toolbar buttons. */
+  & #navigator-toolbox,
+  & #zen-appcontent-navbar-wrapper,
+  & #sidebar-launcher-splitter,
+  & #sidebar-splitter {
+    display: none !important;
+  }
+
   & #browser {
     flex: 1;
     min-height: 0;
@@ -32,6 +40,7 @@
     margin: 0;
     text-align: center;
     font-size: 12px;
+    min-width: 0;
     opacity: 0.7;
     user-select: none;
   }
@@ -59,6 +68,14 @@
 
   & #zen-little-arc-close {
     list-style-image: url("chrome://global/skin/icons/close.svg");
+  }
+
+  & #zen-little-arc-copy {
+    list-style-image: url("chrome://global/skin/icons/edit-copy.svg");
+
+    &[copied] {
+      list-style-image: url("chrome://global/skin/icons/check.svg");
+    }
   }
 
   & #zen-little-arc-maximize {
