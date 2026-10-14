@@ -3,6 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 zen-tab-tree-close-all =
-    .label = Close All Tree
+    .label = Close Tree
 zen-tab-tree-close-branches =
-    .label = Close Only Tree Branches
+    .label = Close Tree Branches
