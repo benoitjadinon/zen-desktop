@@ -95,9 +95,14 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
 
 ## Staying current with upstream
 
-- `apps-autoupdate` (daily timer) fetches `zen-browser/desktop`, fast-forwards
-  `dev` and merges it into `feat/...` branches, aborting on conflicts. Our
-  `.patch` files conflict easily; resolve by hand, then `npx surfer export`.
+- `dev` is our **main line**: upstream plus every finished feature of ours.
+  `apps-autoupdate` (daily timer) merges `zen-browser/desktop` `dev` into it
+  (`apps.mainCarriesFeatures`) and into any other `feat/...` branch. Conflicts
+  go to `claude -p`, then `pi -p`; agent-resolved merges stay local until
+  reviewed. Our `.patch` files conflict easily: after a resolved merge run
+  `npx surfer export` and rebuild.
+- After a merge or pull, new files under `src/zen/tests/` need symlinks in
+  `engine/zen/tests/`, or `mach` fails with "lists test that does not exist".
 - A change to `surfer.json` means Firefox moved: `npm run sync`, `npm run import`,
   and a full engine rebuild; `./mach build faster` is not enough.
 - `~/Tools/scripts/zen-install` copies the build to `~/.local/lib/zen-custom`
@@ -106,6 +111,8 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
 
 ## Git
 
-- Work on `feat/...` branches, push to `origin` (the fork). Open a PR only
-  when asked. End commit messages with the Co-Authored-By trailer from the
+- Develop on a short-lived `feat/...` branch and push it to `origin` (the
+  fork). When it is finished, merge it into `dev`, push `dev`, and delete the
+  branch (local and remote); don't leave finished work only on a feature
+  branch. Open a PR only when asked. End commit messages with the Co-Authored-By trailer from the
   session.
