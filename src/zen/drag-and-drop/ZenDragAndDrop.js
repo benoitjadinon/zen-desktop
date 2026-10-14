@@ -1191,10 +1191,13 @@
 
     // Re-indent the existing native drop indicator to the level the dragged node
     // will land at, so there's a single accurate line rather than a second one.
-    #setNativeIndicatorIndent(level0Left, level, rightEdge) {
+    #setNativeIndicatorIndent(level0Left, level, rightEdge, top) {
       const indentStep = this._treeIndentStep;
       const left = level0Left + level * indentStep;
       const indicator = gZenPinnedTabManager.dragIndicator;
+      if (top != null) {
+        indicator.style.setProperty("--indicator-top", `${Math.round(top)}px`);
+      }
       indicator.style.setProperty("--indicator-left", `${left}px`);
       indicator.style.setProperty(
         "--indicator-width",
@@ -1235,7 +1238,24 @@
             : Math.round((clientX - (prevRect.x + indentStep)) / indentStep);
         level = Math.max(minLevel, Math.min(prevLevel + steps, maxLevel));
         const level0Left = prevRect.left - prevLevel * indentStep;
-        this.#setNativeIndicatorIndent(level0Left, level, prevRect.right);
+        // Pin the line to the gap under the tab above it. The native placement
+        // can resolve to a closing, collapsed or other-space tab and land far
+        // from where the drop will.
+        this.#setNativeIndicatorIndent(
+          level0Left,
+          level,
+          prevRect.right,
+          prevRect.bottom
+        );
+      } else if (next) {
+        // Top of the list: the line sits above the first visible tab.
+        const nextRect = window.windowUtils.getBoundsWithoutFlushing(next);
+        this.#setNativeIndicatorIndent(
+          nextRect.left,
+          0,
+          nextRect.right,
+          nextRect.top
+        );
       }
       // Remember the resolved anchor + level so the drop lands exactly here.
       this.#dragOverReorder.prev = prev;
