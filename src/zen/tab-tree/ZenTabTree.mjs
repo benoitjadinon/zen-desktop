@@ -165,6 +165,17 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
     ) {
       return;
     }
+    // Only a click that lands on the X itself: nothing else on the tab may
+    // trigger a tree close.
+    const { left, right, top, bottom } = event.target.getBoundingClientRect();
+    if (
+      event.clientX < left ||
+      event.clientX > right ||
+      event.clientY < top ||
+      event.clientY > bottom
+    ) {
+      return;
+    }
     const tab = event.target.closest(".tabbrowser-tab");
     if (!tab || tab.multiselected) {
       return;
