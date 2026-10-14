@@ -23,6 +23,7 @@ DIRS += [
     "spaces",
     "space-routing",
     "sync",
+    "tab-tree",
     "tabs",
     "window-drag",
 ]
