@@ -97,9 +97,37 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
 
   // Whether Shift/Alt is held: with it, a parent's close button closes its tree.
   #setKillModifier(event) {
-    const held = !!(event.shiftKey || event.altKey);
-    gBrowser.tabContainer.toggleAttribute("zen-tree-kill-modifier", held);
+    this.#applyKillModifier(!!(event?.shiftKey || event?.altKey));
   }
+
+  #applyKillModifier(held) {
+    const tabs = gBrowser.tabContainer;
+    const hovered = held
+      ? tabs.querySelector(".tabbrowser-tab[zen-tree-parent]:hover")
+      : null;
+    if (
+      held === tabs.hasAttribute("zen-tree-kill-modifier") &&
+      hovered === this.#killTooltipTab
+    ) {
+      return;
+    }
+    tabs.toggleAttribute("zen-tree-kill-modifier", held);
+    // The X's tooltip counts the tabs it will close: "Close tab" normally,
+    // "Close N tabs" while it would close the whole tree.
+    const setCount = (tab, count) => {
+      const button = tab?.querySelector(".tab-close-button");
+      if (button) {
+        document.l10n.setArgs(button, { tabCount: count });
+      }
+    };
+    setCount(this.#killTooltipTab, 1);
+    if (hovered) {
+      setCount(hovered, 1 + this.#tabsOf(this.getDescendants(hovered)).length);
+    }
+    this.#killTooltipTab = hovered;
+  }
+
+  #killTooltipTab = null;
 
   #initCloseTree() {
     const tabs = gBrowser.tabContainer;
@@ -108,14 +136,10 @@ class nsZenTabTree extends nsZenDOMOperatedFeature {
     tabs.addEventListener("mousemove", e => this.#setKillModifier(e), {
       passive: true,
     });
-    tabs.addEventListener("mouseleave", () =>
-      tabs.removeAttribute("zen-tree-kill-modifier")
-    );
+    tabs.addEventListener("mouseleave", () => this.#applyKillModifier(false));
     window.addEventListener("keydown", e => this.#setKillModifier(e), true);
     window.addEventListener("keyup", e => this.#setKillModifier(e), true);
-    window.addEventListener("blur", () =>
-      tabs.removeAttribute("zen-tree-kill-modifier")
-    );
+    window.addEventListener("blur", () => this.#applyKillModifier(false));
     // Capture, so this runs before the tab's own close-button handler.
     tabs.addEventListener("click", e => this.#onCloseButtonClick(e), true);
 
