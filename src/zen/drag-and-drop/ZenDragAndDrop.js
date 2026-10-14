@@ -966,6 +966,10 @@
       }
       indicator.setAttribute("orientation", "horizontal");
       const style = indicator.style;
+      // The pinned-tabs code positions the line with inline top/left in its own
+      // modes. Left set, they stack on this transform and push the line down.
+      style.removeProperty("top");
+      style.removeProperty("left");
       const vars = {
         "--indicator-left": `${left}px`,
         "--indicator-width": `${width}px`,
@@ -1025,9 +1029,10 @@
         const lastTab = tree.lastDropTab(draggedNodes);
         if (lastTab) {
           const r = window.windowUtils.getBoundsWithoutFlushing(lastTab);
-          if (event.clientY >= r.bottom) {
+          const bottom = r.top + r.height;
+          if (event.clientY >= bottom) {
             dropElement = lastTab;
-            belowList = event.clientY >= r.bottom + 6;
+            belowList = event.clientY >= bottom + 6;
           }
         }
       }
@@ -1195,6 +1200,8 @@
       const indentStep = this._treeIndentStep;
       const left = level0Left + level * indentStep;
       const indicator = gZenPinnedTabManager.dragIndicator;
+      indicator.style.removeProperty("top");
+      indicator.style.removeProperty("left");
       if (top != null) {
         indicator.style.setProperty("--indicator-top", `${Math.round(top)}px`);
       }
@@ -1245,7 +1252,7 @@
           level0Left,
           level,
           prevRect.right,
-          prevRect.bottom
+          prevRect.top + prevRect.height
         );
       } else if (next) {
         // Top of the list: the line sits above the first visible tab.
