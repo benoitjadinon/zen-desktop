@@ -189,12 +189,15 @@ export const ZenLittleArc = {
     if (!target) {
       target = await this.openFullWindow(littleWindow, isPrivate);
     }
-    if (
-      littleWindow.closed ||
-      !target.gBrowser.adoptTab(tab, { tabIndex: Infinity, selectTab: true })
-    ) {
+    const adopted =
+      !littleWindow.closed &&
+      target.gBrowser.adoptTab(tab, { tabIndex: Infinity, selectTab: true });
+    if (!adopted) {
       return null;
     }
+    // The promoted page is a standalone tab, not a child of whatever tab was
+    // selected (or last) in the target window: keep it at the end, at root.
+    target.gZenTabTree?.detachTab(adopted);
     target.focus();
     return target;
   },
