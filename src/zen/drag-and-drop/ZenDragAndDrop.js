@@ -2156,7 +2156,7 @@
       ) {
         this.clearDragOverVisuals();
         dropElement = null;
-        return [dropElement, dropBefore];
+        return [dropBefore, dropElement];
       }
       if (
         isTabGroupLabel(draggedTab) &&
@@ -2168,7 +2168,7 @@
       ) {
         dropElement = null;
         this.clearDragOverVisuals();
-        return [dropElement, dropBefore];
+        return [dropBefore, dropElement];
       }
       if (
         isTab(dropElement) ||
