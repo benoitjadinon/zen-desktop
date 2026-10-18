@@ -3238,9 +3238,18 @@ class nsZenWorkspaces {
 
   // Tab browser utilities
 
-  getContextIdIfNeeded(userContextId, fromExternal, triggeringPrincipal) {
+  getContextIdIfNeeded(
+    userContextId,
+    fromExternal,
+    triggeringPrincipal,
+    inheritedFromOpener = false
+  ) {
     if (!this.workspaceEnabled) {
       return [userContextId, false, undefined];
+    }
+
+    if (Number.isNaN(userContextId)) {
+      userContextId = undefined;
     }
 
     if (
@@ -3253,7 +3262,9 @@ class nsZenWorkspaces {
 
     if (
       this.shouldForceContainerTabsToWorkspace &&
-      typeof userContextId !== "undefined" &&
+      typeof userContextId === "number" &&
+      userContextId > 0 &&
+      !inheritedFromOpener &&
       this._workspaceCache &&
       !fromExternal
     ) {

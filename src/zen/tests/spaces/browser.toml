@@ -14,6 +14,8 @@ support-files = [
 
 ["browser_double_click_newtab.js"]
 
+["browser_force_container_workspace_link_click.js"]
+
 ["browser_issue_10455.js"]
 
 ["browser_issue_12112.js"]
