@@ -117,6 +117,15 @@ export class nsZenSessionManager {
     this.#deferredBackupTask = new lazy.DeferredTask(async () => {
       await this.#createBackupsIfNeeded();
     }, REGENERATION_DEBOUNCE_RATE_MS);
+    // Tabs that hold nothing but about:blank are leftovers of a tab swap or
+    // of a preload (see #isDroppableStandin). They are restored like any
+    // other tab, so drop them once the session is back rather than letting
+    // them pile up, startup after startup.
+    lazy.SessionStore.promiseAllWindowsRestored
+      .then(() => this.#dropRestoredStandinTabs())
+      .catch(e =>
+        console.error("ZenSessionManager: Failed to drop blank tabs", e)
+      );
   }
 
   log(...args) {
@@ -759,11 +768,21 @@ export class nsZenSessionManager {
       return false;
     }
     // See gh-12152.
-    let isBlank = this.#isBlankTabData(tabData);
-    if (isBlank) {
-      this.log("Skipping blank tab data", tabData);
+    const isBlank = this.#isBlankTabData(tabData);
+    if (!isBlank) {
+      return true;
     }
-    return !!tabData.zenSyncId || !isBlank;
+    // Blank data means the tab holds nothing: it is a stand-in for content
+    // that lives somewhere else now. It used to be collected - and therefore
+    // restored forever - only because it carried a zenSyncId, which is how
+    // empty tabs piled up. Keep the blank tabs the user means to keep.
+    const isKeptByUser =
+      !!tabData.pinned || !!tabData.groupId || !!tabData.zenLiveFolderItemId;
+    if (!isKeptByUser) {
+      this.log("Skipping blank tab data", tabData);
+      return false;
+    }
+    return !!tabData.zenSyncId;
   }
 
   /**
@@ -794,6 +813,75 @@ export class nsZenSessionManager {
       return !candidateIsBlank;
     }
     return !!aCandidate._zenIsActiveTab;
+  }
+
+  /**
+   * Whether a restored tab holds nothing at all and should be dropped.
+   *
+   * Swapping the browsers of two tabs, or preloading one, can leave a tab
+   * behind with a single about:blank entry and no title - a stand-in for
+   * content that now lives elsewhere (see ZenWindowSync). Such a tab keeps
+   * its zenSyncId, so it was restored as an empty tab on every startup until
+   * those empty tabs piled up. Anything the user deliberately keeps is
+   * spared: pinned and essential tabs, folder placeholders, grouped and
+   * glance tabs, and live folder items.
+   *
+   * @param {MozTabbrowserTab} aTab The restored tab to inspect.
+   * @returns {boolean} Whether the tab holds nothing and can go away.
+   */
+  #isDroppableStandin(aTab) {
+    if (!aTab || aTab.closing || aTab.hidden) {
+      return false;
+    }
+    if (
+      aTab.pinned ||
+      aTab.group ||
+      aTab.hasAttribute("zen-empty-tab") ||
+      aTab.hasAttribute("zen-essential") ||
+      aTab.hasAttribute("zen-glance-tab") ||
+      aTab.hasAttribute("glance-id") ||
+      aTab.hasAttribute("zen-live-folder-item-id")
+    ) {
+      return false;
+    }
+    let tabData;
+    try {
+      // Judge the tab by what the session store knows about it, not by its
+      // browser: a tab that has not started loading yet shows about:blank
+      // while still holding a page to restore.
+      tabData = JSON.parse(lazy.SessionStore.getTabState(aTab));
+    } catch (e) {
+      return false;
+    }
+    return this.#isBlankTabData(tabData);
+  }
+
+  /**
+   * Closes the restored tabs that hold nothing.
+   */
+  #dropRestoredStandinTabs() {
+    let dropped = 0;
+    for (const win of Services.wm.getEnumerator("navigator:browser")) {
+      if (win.closed || !win.gBrowser) {
+        continue;
+      }
+      // Removing a tab mutates the live collection, so iterate over a copy.
+      for (const tab of Array.from(win.gBrowser.tabs)) {
+        if (!this.#isDroppableStandin(tab)) {
+          continue;
+        }
+        this.log(
+          "Dropping restored tab that holds nothing:",
+          tab.getAttribute("id"),
+          tab.getAttribute("zen-workspace-id")
+        );
+        win.gBrowser.removeTab(tab, { animate: false });
+        dropped++;
+      }
+    }
+    if (dropped) {
+      this.log(`Dropped ${dropped} restored tab(s) that held nothing`);
+    }
   }
 
   #collectUsedTabsFromWindows(aStateWindows) {
