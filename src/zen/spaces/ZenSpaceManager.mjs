@@ -1783,7 +1783,11 @@ class nsZenWorkspaces {
     }
     const asked = aSpaceId ?? aTab.getAttribute("zen-workspace-id");
     const space = this.getWorkspaceFromId(asked) ? asked : this.activeWorkspace;
-    if (space === aTab.getAttribute("zen-workspace-id")) {
+    const workspaceContainer = this.workspaceElement(space);
+    const container = aTab.pinned
+      ? workspaceContainer?.pinnedTabsContainer
+      : workspaceContainer?.tabsContainer;
+    if (space === aTab.getAttribute("zen-workspace-id") && container?.contains(aTab)) {
       return;
     }
     aTab.setAttribute("zen-workspace-id", space);
@@ -3116,6 +3120,7 @@ class nsZenWorkspaces {
       await this.changeWorkspaceWithID(tabWorkspaceId);
     } else {
       tab.setAttribute("zen-workspace-id", activeWorkspace.uuid);
+      this.moveTabToWorkspace(tab, activeWorkspace.uuid);
     }
   }
 
