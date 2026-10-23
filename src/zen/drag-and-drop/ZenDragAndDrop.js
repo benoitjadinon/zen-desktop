@@ -2275,7 +2275,6 @@
           event.target
             .closest(".zen-essentials-container")
             .appendChild(this._fakeEssentialTab);
-          gZenWorkspaces.updateTabsContainers();
           pinnedTabs.push(this._fakeEssentialTab);
           this._fakeEssentialTab.getBoundingClientRect(); // Initialize layout
         }
