@@ -16,6 +16,7 @@ DIRS += [
     "little-arc",
     "live-folders",
     "media",
+    "migration",
     "mods",
     "tests",
     "urlbar",
