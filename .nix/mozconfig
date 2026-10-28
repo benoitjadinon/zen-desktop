@@ -1,0 +1,5 @@
+. "$topsrcdir/mozconfig"
+ac_add_options --with-libclang-path="$MOZ_LIBCLANG_PATH"
+ac_add_options --disable-updater
+# Nix's WASI libc++ sysroot lacks the libc headers expected by this Firefox revision.
+ac_add_options --without-wasm-sandboxed-libraries

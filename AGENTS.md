@@ -1,8 +1,8 @@
 # AGENTS.md
 
 Notes for agents adding features to this Zen fork and building it locally.
-Workspace-wide rules (fork-first, feature branches, no PR without a go-ahead)
-live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
+Workspace-wide Nix packaging and source rules live in
+`~/nixos-config/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
 
 ## Layout
 
@@ -10,9 +10,9 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
   checkout in `engine/`. `engine/` is a build input, not tracked here.
 - Files under `engine/zen/` and `engine/browser/**/zen-*` are symlinks back
   into `src/`. A brand-new directory under `src/zen/` needs a symlink too,
-  or `mach` fails with "referenced a path that does not exist":
-  `ln -s /home/ben/Apps/zen/src/zen/<dir> engine/zen/<dir>` (`surfer import`
-  does this properly).
+  or `mach` fails with "referenced a path that does not exist". Run
+  `npm run import` after moving the checkout or adding new files; Surfer
+  recreates the links for the current checkout path.
 - Engine files are changed as patches: edit the file in `engine/`, then from
   the **repo root** run `npx surfer export <path relative to engine>`, for
   example `npx surfer export browser/modules/BrowserDOMWindow.sys.mjs`.
@@ -41,8 +41,9 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
 
 ## Build and run
 
-- Front-end only changes (JS, CSS, XHTML, prefs, ftl): `cd engine && ./mach build faster`
-  (about 30 s). No full engine rebuild. Redirect output to a file.
+- Front-end only changes (JS, CSS, XHTML, prefs, ftl): from the checkout root run
+  `nix develop . -c sh -lc 'cd engine && ./mach build faster'` (about one minute on this
+  NixOS setup). No full engine rebuild. Redirect output to a file.
 - Run it: `npm start` (throwaway profile, `--noprofile`). Modules load at
   startup, so restart Zen after every build. A module with a syntax error
   fails silently in the UI; check the console log.
@@ -80,15 +81,27 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
 - `adoptTab` moves a tab between windows without a reload and keeps page
   state.
 
-## Deploying locally
+## Running the local Nix dev app
 
-- `~/.local/bin/zen-custom` is a small script that runs
-  `engine/obj-x86_64-pc-linux-gnu/dist/bin/zen`, so `./mach build faster` is
-  the whole deploy. Zen also writes its own `userapp-Zen-*.desktop` pointing
-  at that binary when it sets itself as the default browser.
-- The `apps` CLI only checks that `~/.local/bin/zen` exists
-  (a symlink to `zen-custom` here). Don't run `apps build zen`; it doesn't
-  know this build.
+- Nix provides `zen-dev`, which runs
+  `engine/obj-x86_64-pc-linux-gnu/dist/bin/zen` with a dedicated profile under
+  `$XDG_DATA_HOME/zen-dev/profile`.
+- For front-end changes run `nix develop . -c sh -lc 'cd engine && ./mach build faster'`;
+  restart Zen after each build. The copied engine/object directory is preserved so these
+  builds can reuse it. The project flake pins the toolchain and imports nixpkgs Firefox build
+  inputs; `.nix/mozconfig` supplies libclang, disables the updater, and disables WASM
+  sandboxed libraries locally. Release build settings are unchanged.
+- Do not use the old `zen-install` or `zen-release` scripts. They copy binaries
+  outside the Nix store and replace the Nix-managed launcher.
+
+## Promoting a release
+
+- Build a versioned Linux tarball from the chosen commit on the fork and
+  publish it as a GitHub Release asset.
+- Run `nix-app promote zen <version> <release-asset-url>` to fetch its hash,
+  create the pinned Nix package and switch the normal browser association.
+- The release package lives in the Nix store; `zen-dev` remains installed for
+  feature checks. Its profile stays separate from the release profile.
 - Hyprland (Lua config in `~/.config/hypr/`): window rules go in
   `custom/rules.lua`, for example `hl.window_rule({ match = { class = "..." }, ... })`.
   The little-arc window has class `zen-little-arc`. Back the config up first.
@@ -105,9 +118,8 @@ live in `~/Apps/AGENTS.md`. The Firefox side has its own `engine/AGENTS.md`.
   `engine/zen/tests/`, or `mach` fails with "lists test that does not exist".
 - A change to `surfer.json` means Firefox moved: `npm run sync`, `npm run import`,
   and a full engine rebuild; `./mach build faster` is not enough.
-- `~/Tools/scripts/zen-install` copies the build to `~/.local/lib/zen-custom`
-  and rewrites the `zen-custom` launcher; `zen-release` makes a release build.
-  Both replace the wrapper described above, so don't run them casually.
+- `surfer.json` is part of the release identity and build setup; version or
+  engine changes need review and a full source sync before promotion.
 
 ## Git
 

@@ -11,7 +11,7 @@
 # Run `./mach build` in the worktree for a fresh one.
 set -euo pipefail
 
-MAIN="${ZEN_MAIN_CHECKOUT:-${ORCA_ROOT_PATH:-$HOME/Apps/zen}}"
+MAIN="${ZEN_MAIN_CHECKOUT:-${ORCA_ROOT_PATH:-$HOME/Projects/apps/zen}}"
 cd "$(dirname "$0")/.."
 
 if [ "$(realpath .)" = "$(realpath "$MAIN")" ]; then
