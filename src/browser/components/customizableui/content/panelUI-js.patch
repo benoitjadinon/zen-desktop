@@ -1,8 +1,71 @@
 diff --git a/browser/components/customizableui/content/panelUI.js b/browser/components/customizableui/content/panelUI.js
-index 140ea6eddd0d0c6817bbaabf2dc00083eaa11b13..0fe33867cf64d02b2b6e6db8b6844a4ea044ad33 100644
+index fb77346559b4c285a40418e5ec2bf83db64564fd..0a154186bf620509b6704f0ad89da3a88be28161 100644
 --- a/browser/components/customizableui/content/panelUI.js
 +++ b/browser/components/customizableui/content/panelUI.js
-@@ -666,10 +666,12 @@ const PanelUI = {
+@@ -119,6 +119,7 @@ const PanelUI = {
+   _initialized: false,
+   _notifications: null,
+   _notificationPanel: null,
++  _appMenuFallbackL10n: null,
+ 
+   init() {
+     this._initElements();
+@@ -352,6 +353,7 @@ const PanelUI = {
+     this._ensureShortcutsShown();
+     (async () => {
+       await this.ensureReady();
++      await this._ensureAppMenuLabels();
+ 
+       if (
+         this.panel.state == "open" ||
+@@ -380,6 +382,46 @@ const PanelUI = {
+     })().catch(console.error);
+   },
+ 
++  /**
++   * Apply the main app menu's Fluent labels if document localization missed
++   * them. Some local builds can finish browser.xhtml startup without applying
++   * its linked localization resources, leaving menu buttons with icons and
++   * shortcuts but no labels. Keep this fallback scoped to this menu.
++   */
++  async _ensureAppMenuLabels() {
++    let menuTemplate = document.getElementById("appMenu-viewCache");
++    let root = menuTemplate?.content ?? this.panel;
++    if (!root) {
++      return;
++    }
++
++    let elements = [...root.querySelectorAll("[data-l10n-id]")].filter(
++      element => !element.hasAttribute("label")
++    );
++    if (!elements.length) {
++      return;
++    }
++
++    this._appMenuFallbackL10n ??= new Localization(
++      [
++        "branding/brand.ftl",
++        "browser/appmenu.ftl",
++        "browser/browser.ftl",
++        "browser/aiWindow.ftl",
++      ],
++      true
++    );
++    let messages = await this._appMenuFallbackL10n.formatMessages(
++      elements.map(element => ({ id: element.getAttribute("data-l10n-id") }))
++    );
++
++    for (let i = 0; i < elements.length; i++) {
++      for (let attribute of messages[i]?.attributes ?? []) {
++        elements[i].setAttribute(attribute.name, attribute.value);
++      }
++    }
++  },
++
+   /**
+    * If the menu panel is being shown, hide it.
+    */
+@@ -765,10 +807,12 @@ const PanelUI = {
      if (hasKids && !this.navbar.hasAttribute("nonemptyoverflow")) {
        this.navbar.setAttribute("nonemptyoverflow", "true");
        this.overflowPanel.setAttribute("hasfixeditems", "true");
@@ -15,7 +78,7 @@ index 140ea6eddd0d0c6817bbaabf2dc00083eaa11b13..0fe33867cf64d02b2b6e6db8b6844a4e
      }
    },
  
-@@ -1017,7 +1019,7 @@ const PanelUI = {
+@@ -1136,7 +1180,7 @@ const PanelUI = {
          el.removeAttribute("data-lazy-l10n-id");
        });
  
