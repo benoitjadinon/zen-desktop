@@ -1,16 +1,16 @@
 diff --git a/browser/modules/BrowserDOMWindow.sys.mjs b/browser/modules/BrowserDOMWindow.sys.mjs
-index dd54e29d87fb14b2f9d7183e36912f4ccfef1850..b0c5ee317d63c280bf863ab5cb663259703267c8 100644
+index 2cbf419680e8b2943786aeeda290c70af16e6c4a..f341e52420b84424d6180a551bfef6efff75cf37 100644
 --- a/browser/modules/BrowserDOMWindow.sys.mjs
 +++ b/browser/modules/BrowserDOMWindow.sys.mjs
-@@ -13,6 +13,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
-   NimbusFeatures: "resource://nimbus/ExperimentAPI.sys.mjs",
-   TaskbarTabsUtils: "resource:///modules/taskbartabs/TaskbarTabsUtils.sys.mjs",
+@@ -14,6 +14,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
+   TaskbarTabsUtils:
+     "moz-src:///browser/components/taskbartabs/TaskbarTabsUtils.sys.mjs",
    URILoadingHelper: "resource:///modules/URILoadingHelper.sys.mjs",
 +  ZenLittleArc: "resource:///modules/zen/littlearc/ZenLittleArc.sys.mjs",
  });
  
  XPCOMUtils.defineLazyPreferenceGetter(
-@@ -272,6 +273,20 @@ export class BrowserDOMWindow {
+@@ -273,6 +274,20 @@ export class BrowserDOMWindow {
        return null;
      }
  
@@ -31,7 +31,7 @@ index dd54e29d87fb14b2f9d7183e36912f4ccfef1850..b0c5ee317d63c280bf863ab5cb663259
      if (isExternal) {
        lazy.NimbusFeatures.externalLinkHandling.recordExposureEvent({
          once: true,
-@@ -450,7 +465,7 @@ export class BrowserDOMWindow {
+@@ -451,7 +466,7 @@ export class BrowserDOMWindow {
      // Passing a null-URI to only create the content window,
      // and pass true for aSkipLoad to prevent loading of
      // about:blank
@@ -40,7 +40,7 @@ index dd54e29d87fb14b2f9d7183e36912f4ccfef1850..b0c5ee317d63c280bf863ab5cb663259
        null,
        aParams,
        aWhere,
-@@ -458,6 +473,10 @@ export class BrowserDOMWindow {
+@@ -459,6 +474,10 @@ export class BrowserDOMWindow {
        aName,
        true
      );
