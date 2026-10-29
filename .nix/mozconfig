@@ -1,4 +1,10 @@
 . "$topsrcdir/mozconfig"
+# NixOS uses the current libstdc++ ABI; the compatibility shim targets older
+# distro libstdc++ releases and no longer compiles with current GCC headers.
+unset MOZ_STDCXX_COMPAT
+# Nix's `as` executable is the raw assembler and does not accept GCC's
+# -Wa,... forwarding option used by Firefox's NSPR build rules.
+export AS=gcc
 ac_add_options --with-libclang-path="$MOZ_LIBCLANG_PATH"
 ac_add_options --disable-updater
 # Nix's WASI libc++ sysroot lacks the libc headers expected by this Firefox revision.
