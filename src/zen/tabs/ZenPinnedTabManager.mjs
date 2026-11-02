@@ -631,12 +631,12 @@ class nsZenPinnedTabManager extends nsZenDOMOperatedFeature {
             <menuseparator id="context_zen-pinned-tab-separator" hidden="true"/>
             <menu id="context_zen-edit-pinned-page"
                   data-lazy-l10n-id="tab-context-zen-edit-pinned-page"
-                  data-l10n-args="{&quot;isEssential&quot;:&quot;&quot;}"
+                  data-l10n-args="{&quot;isEssential&quot;:&quot;false&quot;}"
                   hidden="true">
               <menupopup>
                 <menuitem id="context_zen-replace-pinned-url-with-current"
                           data-lazy-l10n-id="tab-context-zen-replace-pinned-url-with-current"
-                          data-l10n-args="{&quot;isEssential&quot;:&quot;&quot;}"
+                          data-l10n-args="{&quot;isEssential&quot;:&quot;false&quot;}"
                           command="cmd_zenReplacePinnedUrlWithCurrent"/>
                 <menuitem id="context_zen-edit-pinned-url"
                           data-lazy-l10n-id="tab-context-zen-edit-pinned-url"
@@ -645,7 +645,7 @@ class nsZenPinnedTabManager extends nsZenDOMOperatedFeature {
             </menu>
             <menuitem id="context_zen-reset-pinned-tab"
                       data-lazy-l10n-id="tab-context-zen-reset-pinned-tab"
-                      data-l10n-args="{&quot;isEssential&quot;:&quot;&quot;}"
+                      data-l10n-args="{&quot;isEssential&quot;:&quot;false&quot;}"
                       hidden="true"
                       command="cmd_zenPinnedTabResetNoTab"/>
         `);
@@ -705,7 +705,8 @@ class nsZenPinnedTabManager extends nsZenDOMOperatedFeature {
       return;
     }
     const isVisible = contextTab.pinned && !contextTab.multiselected;
-    const isEssential = contextTab.getAttribute("zen-essential");
+    const isEssential =
+      contextTab.getAttribute("zen-essential") === "true" ? "true" : "false";
     const zenAddEssential = document.getElementById(
       "context_zen-add-essential"
     );

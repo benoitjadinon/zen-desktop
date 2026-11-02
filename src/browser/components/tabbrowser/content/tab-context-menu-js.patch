@@ -1,8 +1,16 @@
 diff --git a/browser/components/tabbrowser/content/tab-context-menu.js b/browser/components/tabbrowser/content/tab-context-menu.js
-index 4a7cb33a4d9067d469bbe09d4cd8844581642f7a..d7f75471a207cccac6ca3dec49037ac30dd76163 100644
+index be3252ae5f20fdd94e266372a5ccb1eec234fb6d..d9c9494dd08c3dce01e5db682de37e3aa482ba3f 100644
 --- a/browser/components/tabbrowser/content/tab-context-menu.js
 +++ b/browser/components/tabbrowser/content/tab-context-menu.js
-@@ -839,13 +839,15 @@ var TabContextMenu = {
+@@ -494,6 +494,7 @@ var TabContextMenu = {
+   // eslint-disable-next-line complexity
+   updateContextMenu(aPopupMenu) {
+     this._ensureMenuArranged(aPopupMenu);
++    gBrowser.translateTabContextMenu();
+ 
+     let triggerTab =
+       aPopupMenu.triggerNode &&
+@@ -846,13 +847,15 @@ var TabContextMenu = {
      );
      contextUnpinSelectedTabs.hidden =
        !this.contextTab.pinned || !this.multiselected;

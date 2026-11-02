@@ -1,5 +1,5 @@
 diff --git a/browser/components/tabbrowser/Tabbrowser.sys.mjs b/browser/components/tabbrowser/Tabbrowser.sys.mjs
-index 430e1137a15f0aa8c5f39fd76127f825b2751c69..f100efe60e802f026beca65598c9b3e2001203d5 100644
+index 430e1137a15f0aa8c5f39fd76127f825b2751c69..14b11e20e634c92c81998777067a70e5e0cbe66f 100644
 --- a/browser/components/tabbrowser/Tabbrowser.sys.mjs
 +++ b/browser/components/tabbrowser/Tabbrowser.sys.mjs
 @@ -535,6 +535,7 @@ export class Tabbrowser {
@@ -1357,7 +1357,38 @@ index 430e1137a15f0aa8c5f39fd76127f825b2751c69..f100efe60e802f026beca65598c9b3e2
  
          let listener = Tabbrowser.#tabListeners.get(tab);
          if (listener) {
-@@ -10636,6 +11019,7 @@ class TabProgressListener {
+@@ -10309,23 +10692,22 @@ export class Tabbrowser {
+     });
+   }
+ 
+-  #tabContextMenuTranslated = false;
++  #tabContextMenuFTLInserted = false;
+   translateTabContextMenu() {
+-    if (this.#tabContextMenuTranslated) {
+-      return;
++    if (!this.#tabContextMenuFTLInserted) {
++      this.documentGlobal.MozXULElement.insertFTLIfNeeded(
++        "browser/tabContextMenu.ftl"
++      );
++      this.#tabContextMenuFTLInserted = true;
+     }
+-    this.documentGlobal.MozXULElement.insertFTLIfNeeded(
+-      "browser/tabContextMenu.ftl"
+-    );
+     // Un-lazify the l10n-ids now that the FTL file has been inserted.
+     this.document
+       .getElementById("tabContextMenu")
+-      .querySelectorAll("[data-lazy-l10n-id]")
++      ?.querySelectorAll("[data-lazy-l10n-id]")
+       .forEach(el => {
+         el.setAttribute("data-l10n-id", el.getAttribute("data-lazy-l10n-id"));
+         el.removeAttribute("data-lazy-l10n-id");
+       });
+-    this.#tabContextMenuTranslated = true;
+   }
+ 
+   setSuccessor(aTab, successorTab) {
+@@ -10636,6 +11018,7 @@ class TabProgressListener {
            aWebProgress.isTopLevel
          ) {
            this._tab.setAttribute("busy", "true");
@@ -1365,7 +1396,7 @@ index 430e1137a15f0aa8c5f39fd76127f825b2751c69..f100efe60e802f026beca65598c9b3e2
            this.#tabbrowser._tabAttrModified(this._tab, ["busy"]);
            this._tab._notselectedsinceload = !this._tab.selected;
          }
-@@ -10716,6 +11100,7 @@ class TabProgressListener {
+@@ -10716,6 +11099,7 @@ class TabProgressListener {
        // known defaults. Note we use the original URL since about:newtab
        // redirects to a prerendered page.
        const shouldRemoveFavicon =
@@ -1373,7 +1404,7 @@ index 430e1137a15f0aa8c5f39fd76127f825b2751c69..f100efe60e802f026beca65598c9b3e2
          !this._browser.mIconURL &&
          !ignoreBlank &&
          !(originalLocation.spec in FAVICON_DEFAULTS);
-@@ -10893,13 +11278,6 @@ class TabProgressListener {
+@@ -10893,13 +11277,6 @@ class TabProgressListener {
            this._browser.originalURI = aRequest.originalURI;
          }
  

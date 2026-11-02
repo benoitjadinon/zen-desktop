@@ -26,3 +26,5 @@ tags = [
 ["browser_tabs_fetch_checks.js"]
 
 ["browser_adopt_tab_promote.js"]
+
+["browser_context_menu_labels.js"]
