@@ -1,0 +1,81 @@
+% zen, build
+
+# Build full Zen browser
+npm run build
+
+# Build UI only (Surfer)
+npm run build:ui
+
+# Fast incremental front-end build (JS, CSS, XHTML, prefs)
+cd engine && ./mach build faster
+
+# Regenerate engine/browser/app/profile/zen.js from YAML prefs
+npm run ffprefs
+
+# Package Zen release bundle
+npm run package
+
+% zen, dev
+
+# Run Zen with fresh throwaway profile
+npm start
+
+# Run Zen with memory bloat logging enabled
+npm run start:bloat
+
+# Export modified engine file back to patch
+npx surfer export <engine_file_path>
+
+% zen, setup
+
+# Download, import, and bootstrap Firefox engine
+npm run init
+
+# Download Firefox base archive
+npm run download
+
+# Bootstrap dependencies
+npm run bootstrap
+
+# Recreate symlinks back into src/ and import dumps/l10n
+npm run import
+
+# Reset Firefox engine state
+npm run reset-ff
+
+% zen, sync
+
+# Sync and update Firefox version
+npm run sync
+
+# Sync Firefox release candidate version
+npm run sync:rc
+
+# Sync only localization strings
+npm run sync:l10n
+
+# Raw Surfer update
+npm run sync:raw
+
+% zen, test
+
+# Run tests
+npm run test
+
+# Run tests with JS debugger attached and pause on failure
+npm run test:dbg
+
+# Run Zen C++ gtests in engine
+npm run test:gtest
+
+# Run Zen linter
+npm run lint
+
+# Run Zen linter with autofix
+npm run lint:fix
+
+# Check licenses
+npm run lc
+
+# Fix licenses
+npm run lc:fix
