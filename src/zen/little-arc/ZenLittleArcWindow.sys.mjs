@@ -36,11 +36,14 @@ export class ZenLittleArcWindow extends ZenUIComponent {
   #blurTimer = null;
   #title = null;
   #copyTimer = null;
+  #pinButton = null;
+  #pinned = false;
 
   init() {
     if (!lazy.ZenLittleArc.isLittleWindow(this.window)) {
       return;
     }
+    this.window.gZenLittleArcWindow = this;
     this.#buildChrome();
     this.listenBrowserTabsProgress();
     this.addEventListener("activate");
@@ -55,6 +58,7 @@ export class ZenLittleArcWindow extends ZenUIComponent {
   uninit() {
     this.window.clearTimeout(this.#blurTimer);
     this.window.clearTimeout(this.#copyTimer);
+    delete this.window.gZenLittleArcWindow;
   }
 
   #buildChrome() {
@@ -64,6 +68,10 @@ export class ZenLittleArcWindow extends ZenUIComponent {
                        class="zen-little-arc-button"
                        data-l10n-id="zen-little-arc-close"/>
         <label id="zen-little-arc-title" flex="1" crop="end"/>
+        <toolbarbutton id="zen-little-arc-pin"
+                       class="zen-little-arc-button"
+                       state="notpinned"
+                       data-l10n-id="zen-little-arc-pin"/>
         <toolbarbutton id="zen-little-arc-copy"
                        class="zen-little-arc-button"
                        data-l10n-id="zen-little-arc-copy"/>
@@ -76,13 +84,38 @@ export class ZenLittleArcWindow extends ZenUIComponent {
       .querySelector("#zen-little-arc-close")
       .addEventListener("command", () => this.close());
     bar
+      .querySelector("#zen-little-arc-pin")
+      .addEventListener("command", () => this.togglePin());
+    bar
       .querySelector("#zen-little-arc-maximize")
       .addEventListener("command", () => this.maximize());
     bar
       .querySelector("#zen-little-arc-copy")
       .addEventListener("command", () => this.copyLink());
     this.#title = bar.querySelector("#zen-little-arc-title");
+    this.#pinButton = bar.querySelector("#zen-little-arc-pin");
     this.document.getElementById("zen-main-app-wrapper").prepend(bar);
+  }
+
+  get isPinned() {
+    return this.#pinned;
+  }
+
+  togglePin(forceState) {
+    this.#pinned = typeof forceState === "boolean" ? forceState : !this.#pinned;
+    if (this.#pinButton) {
+      this.#pinButton.setAttribute("state", this.#pinned ? "pinned" : "notpinned");
+      this.#pinButton.toggleAttribute("pinned", this.#pinned);
+      this.#pinButton.setAttribute(
+        "data-l10n-id",
+        this.#pinned ? "zen-little-arc-unpin" : "zen-little-arc-pin"
+      );
+    }
+    if (this.#pinned) {
+      this.window.clearTimeout(this.#blurTimer);
+      this.#blurTimer = null;
+    }
+    return this.#pinned;
   }
 
   #updateTitle() {
@@ -166,7 +199,7 @@ export class ZenLittleArcWindow extends ZenUIComponent {
   on_deactivate() {
     // Only start closing once the pointer has been over the window, so that a
     // window the user never got to (or that was opened out of reach) stays.
-    if (!this.#pointerSeen || this.#leaving || !lazy.closeOnBlur) {
+    if (!this.#pointerSeen || this.#leaving || !lazy.closeOnBlur || this.#pinned) {
       return;
     }
     this.window.clearTimeout(this.#blurTimer);
@@ -178,7 +211,7 @@ export class ZenLittleArcWindow extends ZenUIComponent {
 
   #closeIfStillBlurred() {
     const win = this.window;
-    if (win.closed || this.#leaving) {
+    if (win.closed || this.#leaving || this.#pinned) {
       return;
     }
     const active = Services.focus.activeWindow;

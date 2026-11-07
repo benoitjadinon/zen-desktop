@@ -64,3 +64,41 @@ add_task(async function test_promote_little_arc_preserves_container_and_workspac
   await BrowserTestUtils.removeTab(adoptedTab);
   is(gBrowser.tabs.length, initialTabsCount, "Tab count restored to initial count");
 });
+
+add_task(async function test_little_arc_pin_toggles_and_prevents_blur_close() {
+  const littleWin = ZenLittleArc.open("https://example.com/pin-test", {
+    openerWindow: window,
+    userContextId: 0,
+    fromExternal: true,
+  });
+
+  await BrowserTestUtils.waitForEvent(littleWin, "load");
+  await BrowserTestUtils.browserLoaded(littleWin.gBrowser.selectedBrowser);
+
+  const pinButton = littleWin.document.getElementById("zen-little-arc-pin");
+  ok(pinButton, "Pin button exists in Little Arc window");
+  is(pinButton.getAttribute("state"), "notpinned", "Initial state is notpinned");
+  ok(!pinButton.hasAttribute("pinned"), "Initial pin button does not have pinned attribute");
+  is(littleWin.gZenLittleArcWindow?.isPinned, false, "Component reports isPinned as false initially");
+
+  // Toggle pin on
+  pinButton.click();
+  is(pinButton.getAttribute("state"), "pinned", "State is pinned after click");
+  ok(pinButton.hasAttribute("pinned"), "Button has pinned attribute after click");
+  is(littleWin.gZenLittleArcWindow?.isPinned, true, "Component reports isPinned as true");
+
+  // Trigger deactivate - should not close when pinned
+  littleWin.gZenLittleArcWindow.on_deactivate();
+  await new Promise(resolve => setTimeout(resolve, 50));
+  ok(!littleWin.closed, "Little Arc window remains open on deactivate while pinned");
+
+  // Toggle pin off
+  pinButton.click();
+  is(pinButton.getAttribute("state"), "notpinned", "State returns to notpinned after second click");
+  ok(!pinButton.hasAttribute("pinned"), "Pinned attribute removed after second click");
+  is(littleWin.gZenLittleArcWindow?.isPinned, false, "Component reports isPinned as false");
+
+  // Clean up
+  littleWin.close();
+  await BrowserTestUtils.waitForEvent(littleWin, "unload");
+});

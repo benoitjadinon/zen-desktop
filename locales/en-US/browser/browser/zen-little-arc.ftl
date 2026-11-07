@@ -9,3 +9,9 @@ zen-little-arc-maximize =
 
 zen-little-arc-copy =
     .tooltiptext = Copy link
+
+zen-little-arc-pin =
+    .tooltiptext = Pin window
+
+zen-little-arc-unpin =
+    .tooltiptext = Unpin window

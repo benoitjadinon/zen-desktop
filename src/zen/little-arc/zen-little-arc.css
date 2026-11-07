@@ -70,6 +70,22 @@
     list-style-image: url("chrome://global/skin/icons/close.svg");
   }
 
+  & #zen-little-arc-pin {
+    list-style-image: url("chrome://browser/skin/zen-icons/pin.svg");
+    transition: transform 0.15s ease, background-color 0.15s ease;
+
+    &[pinned],
+    &[state="pinned"] {
+      background: color-mix(in srgb, currentColor 18%, transparent);
+      transform: rotate(-45deg);
+    }
+
+    &[pinned]:hover,
+    &[state="pinned"]:hover {
+      background: color-mix(in srgb, currentColor 26%, transparent);
+    }
+  }
+
   & #zen-little-arc-copy {
     list-style-image: url("chrome://global/skin/icons/edit-copy.svg");
 
