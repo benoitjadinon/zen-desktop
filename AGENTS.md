@@ -47,6 +47,17 @@ Workspace-wide Nix packaging and source rules live in
 - Run it: `npm start` (throwaway profile, `--noprofile`). Modules load at
   startup, so restart Zen after every build. A module with a syntax error
   fails silently in the UI; check the console log.
+- **Gecko startup cache gotcha**: `./mach build faster` does NOT increment the
+  engine's build ID. Gecko caches JS module bytecode in
+  `<profile>/startupCache/scriptCache-current.bin`. If you restart an existing
+  profile without purging caches, Gecko keeps executing the stale bytecode from the
+  previous build. Always run `zen-dev --purgecaches` or delete the cache:
+  `rm -rf ~/.local/share/zen-dev/profile/startupCache`.
+- **Existing running processes**: If an instance of Zen is already open in the
+  background, launching `zen-dev` or opening external links routes over remote IPC to
+  the already-running instance, running the old code in memory. Terminate the running
+  process completely (`Ctrl+Q` or verify with `pgrep -fa 'dist/bin/zen' | grep -v contentproc`)
+  before restarting with updated code.
 - Gotcha: private `#methods` are a syntax error inside object literals
   (`export const X = { ... }`). Use a normal name.
 - `npx prettier --write` uses a different style from some existing files;
