@@ -850,7 +850,8 @@ export class nsZenSessionManager {
       aTab.hasAttribute("zen-essential") ||
       aTab.hasAttribute("zen-glance-tab") ||
       aTab.hasAttribute("glance-id") ||
-      aTab.hasAttribute("zen-live-folder-item-id")
+      aTab.hasAttribute("zen-live-folder-item-id") ||
+      aTab.ownerGlobal?.document?.documentElement?.hasAttribute("zen-little-arc")
     ) {
       return false;
     }
@@ -872,7 +873,13 @@ export class nsZenSessionManager {
   #dropRestoredStandinTabs() {
     let dropped = 0;
     for (const win of Services.wm.getEnumerator("navigator:browser")) {
-      if (win.closed || !win.gBrowser) {
+      if (
+        win.closed ||
+        !win.gBrowser ||
+        !win.toolbar?.visible ||
+        win.document.documentElement.hasAttribute("zen-little-arc") ||
+        win.document.documentElement.hasAttribute("zen-unsynced-window")
+      ) {
         continue;
       }
       // Removing a tab mutates the live collection, so iterate over a copy.
