@@ -20,6 +20,9 @@ npm run package
 # Run Zen with fresh throwaway profile
 npm start
 
+# Stop local Zen, then relaunch zen-dev with startup caches purged
+npm run restart
+
 # Run Zen with memory bloat logging enabled
 npm run start:bloat
 

@@ -196,8 +196,12 @@ export const ZenLittleArc = {
       return null;
     }
     // The promoted page is a standalone tab, not a child of whatever tab was
-    // selected (or last) in the target window: keep it at the end, at root.
+    // selected (or last) in the target window: keep it at the top, at root.
     target.gZenTabTree?.detachTab(adopted);
+    target.gBrowser.moveTabTo(adopted, {
+      tabIndex: 0,
+      forceUngrouped: true,
+    });
     target.focus();
     return target;
   },
